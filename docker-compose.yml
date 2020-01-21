@@ -1,0 +1,18 @@
+version : "3"
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_NAME: app
+   # volumes:
+   #   - .:/var/app
+  db:
+    build: ./db
+    environment:
+      MYSQL_DATABASE: app
+      MYSQL_ROOT_PASSWORD: password
