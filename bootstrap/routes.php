@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Fig\Http\Message\StatusCodeInterface;
+use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Slim\App;
 use Slim\Http\ServerRequest as Request;
@@ -18,6 +19,50 @@ return function(App $app) {
             return $exception->generateHttpResponse($response);
         }
     });
+
+    $app->get('/oauth/authorize', function (Request $request, Response $response) {
+        try {
+            /** @var AuthorizationServer $server */
+            $server = $this->get('authServer');
+            $authRequest = $server->validateAuthorizationRequest($request);
+            /** @var User $user */
+            $authRequest->setUser($user = $this->get('session')->getUser());
+
+            if ($this->get('clientRepo')->wasApproved($authRequest)) {
+                $authRequest->setAuthorizationApproved(true);
+                return $server->completeAuthorizationRequest($authRequest, $response);
+            }
+
+            return $this->get('view')->render($response, 'consent', [
+                'authRequest' => $authRequest,
+                'requestedScopes' => $this->get('scopeRepo')->listRequestedScopes($authRequest),
+                'user' => $this->get('session')->getUser()
+            ]);
+        } catch (OAuthServerException $exception) {
+            return $exception->generateHttpResponse($response);
+        }
+    })->add('middleware.isAuthenticated');
+
+    $app->post('/oauth/authorize', function (Request $request, Response $response) {
+        try {
+            /** @var AuthorizationServer $server */
+            $server = $this->get('authServer');
+            $authRequest = $server->validateAuthorizationRequest($request);
+            /** @var User $user */
+            $authRequest->setUser($user = $this->get('session')->getUser());
+
+            if ($request->getParsedBodyParam('consent') === 'approve') {
+                $authRequest->setAuthorizationApproved(true);
+                $this->get('clientRepo')->recordApproval($authRequest);
+            } else {
+                $authRequest->setAuthorizationApproved(false);
+            }
+
+            return $server->completeAuthorizationRequest($authRequest, $response);
+        } catch (OAuthServerException $exception) {
+            return $exception->generateHttpResponse($response);
+        }
+    })->add('middleware.isAuthenticated');
 
     // LOGGED-IN API
 

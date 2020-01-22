@@ -2,10 +2,13 @@
 
 namespace App\Repositories;
 
+use Aura\Sql\ExtendedPdoInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
+use League\OAuth2\Server\Entities\ScopeEntityInterface;
 use League\OAuth2\Server\Entities\Traits\ClientTrait;
 use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
+use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
 
 class ClientRepository implements ClientRepositoryInterface
 {
@@ -19,8 +22,39 @@ class ClientRepository implements ClientRepositoryInterface
             'redirects' => [],
             'isConfidential' => true,
             'secret' => 'super-secret-client-secret-string'
-        ]
+        ],
+        'single-page-app' => [
+            'name' => 'Single Page App',
+            'redirects' => ['http://localhost/spa-implicit.php'],
+            'isConfidential' => false
+        ],
     ];
+
+    protected ExtendedPdoInterface $db;
+
+    public function __construct(ExtendedPdoInterface $db)
+    {
+        $this->db = $db;
+    }
+
+    public function wasApproved(AuthorizationRequest $authRequest): bool
+    {
+        return $this->db->fetchValue('SELECT COUNT(*) FROM user_client_consent
+                WHERE user_id = ? && client_id = ? && scopes LIKE ?', [
+            $authRequest->getUser()->getIdentifier(),
+            $authRequest->getClient()->getIdentifier(),
+            '%' . $this->getScopeList($authRequest) . '%'
+        ]) > 0;
+    }
+
+    public function recordApproval(AuthorizationRequest $authRequest): void
+    {
+        $this->db->perform('INSERT IGNORE INTO user_client_consent (user_id, client_id, scopes) VALUES (?, ?, ?)', [
+                $authRequest->getUser()->getIdentifier(),
+                $authRequest->getClient()->getIdentifier(),
+                $this->getScopeList($authRequest)
+            ]);
+    }
 
     /**
      * Get a client.
@@ -63,5 +97,13 @@ class ClientRepository implements ClientRepositoryInterface
     {
         return ($client = $this->getClientEntity($clientIdentifier)) !== null &&
             (!$client->isConfidential() || hash_equals(self::CLIENTS[$clientIdentifier]['secret'], $clientSecret));
+    }
+
+    protected function getScopeList(AuthorizationRequest $authRequest)
+    {
+        $scopeList = array_map(fn (ScopeEntityInterface $scope) => $scope->getIdentifier(), $authRequest->getScopes());
+        sort($scopeList);
+
+        return implode(' ', $scopeList);
     }
 }

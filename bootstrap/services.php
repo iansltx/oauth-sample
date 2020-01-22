@@ -10,11 +10,10 @@ use Aura\Sql\ExtendedPdoInterface;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\Grant\ClientCredentialsGrant;
+use League\OAuth2\Server\Grant\ImplicitGrant;
 use League\OAuth2\Server\Grant\PasswordGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\Middleware\ResourceServerMiddleware;
-use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
-use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use League\OAuth2\Server\ResourceServer;
 use Pimple\Container;
 use App\Repositories\UserRepository;
@@ -43,16 +42,18 @@ return function (Container $container, array $env) {
 
         $server->enableGrantType(new ClientCredentialsGrant(), new DateInterval('PT1H'));
 
+        $server->enableGrantType(new ImplicitGrant(new \DateInterval('PT1H')));
+
         return $server;
     };
     $container['resourceServer'] = function (Container $container): ResourceServer {
         return new ResourceServer($container['accessTokenRepo'], new CryptKey(__DIR__ . '/public.key'));
     };
 
-    $container['clientRepo'] = fn (Container $container): ClientRepositoryInterface => new ClientRepository();
+    $container['clientRepo'] = fn (Container $c): ClientRepository => new ClientRepository($c['db']);
     $container['accessTokenRepo'] = fn (Container $c): AccessTokenRepository => new AccessTokenRepository($c['db']);
     $container['refreshTokenRepo'] = fn (Container $c): RefreshTokenRepository => new RefreshTokenRepository($c['db']);
-    $container['scopeRepo'] = fn (): ScopeRepositoryInterface => new ScopeRepository();
+    $container['scopeRepo'] = fn (): ScopeRepository => new ScopeRepository();
 
     $container['userRepo'] = fn (Container $container): UserRepository => new UserRepository($container['db']);
     $container['session'] = fn (Container $container): App\Session => new App\Session($container['userRepo']);

@@ -7,6 +7,7 @@ use League\OAuth2\Server\Entities\ScopeEntityInterface;
 use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\ScopeTrait;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
+use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
 
 class ScopeRepository implements ScopeRepositoryInterface
 {
@@ -34,6 +35,14 @@ class ScopeRepository implements ScopeRepositoryInterface
                 $this->identifier = $name;
             }
         } : null;
+    }
+
+    public function listRequestedScopes(AuthorizationRequest $authRequest): array
+    {
+        return array_map(
+            fn (ScopeEntityInterface $scope) => self::VALID_SCOPES[$scope->getIdentifier()],
+            $authRequest->getScopes()
+        );
     }
 
     /**

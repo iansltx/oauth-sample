@@ -31,3 +31,16 @@ CREATE TABLE refresh_token (
 
 ALTER TABLE refresh_token ADD CONSTRAINT FK_refresh_token_access_token FOREIGN KEY (access_token_id)
     REFERENCES access_token(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+CREATE TABLE user_client_consent (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    client_id VARCHAR(128) NOT NULL,
+    scopes VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+ALTER TABLE user_client_consent ADD UNIQUE INDEX user_client_consent_unique (user_id, client_id, scopes);
+ALTER TABLE user_client_consent ADD CONSTRAINT FK_user_client_consent_user FOREIGN KEY (user_id)
+    REFERENCES user(id) ON UPDATE CASCADE ON DELETE CASCADE;
