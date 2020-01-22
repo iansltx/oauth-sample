@@ -13,6 +13,12 @@ class ClientRepository implements ClientRepositoryInterface
         'first-party' => [
             'name' => 'First Party App',
             'isConfidential' => false,
+        ],
+        'machine-to-machine' => [
+            'name' => 'Machine to Machine',
+            'redirects' => [],
+            'isConfidential' => true,
+            'secret' => 'super-secret-client-secret-string'
         ]
     ];
 
@@ -55,6 +61,7 @@ class ClientRepository implements ClientRepositoryInterface
      */
     public function validateClient($clientIdentifier, $clientSecret, $grantType): bool
     {
-        return $this->getClientEntity($clientIdentifier) !== null;
+        return ($client = $this->getClientEntity($clientIdentifier)) !== null &&
+            (!$client->isConfidential() || hash_equals(self::CLIENTS[$clientIdentifier]['secret'], $clientSecret));
     }
 }

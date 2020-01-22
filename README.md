@@ -8,4 +8,5 @@ database/close down the app, run `docker-compose down`.
 
 To see the Password Grant in action, run `php scripts/password-grand.php` in a local terminal (doesn't
 require Docker if you have a relatively recent version of PHP installed). Feed it requested scopes
-(e.g. me.name, me.hash) at the command line.
+(e.g. me.name, me.hash) at the command line. To see the Client Credentials Grant in action, run
+`php scripts/client-credentials-grant.php`.

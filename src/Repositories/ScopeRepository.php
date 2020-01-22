@@ -12,7 +12,8 @@ class ScopeRepository implements ScopeRepositoryInterface
 {
     protected const VALID_SCOPES = [
         'me.name' => 'Access to your first and last name',
-        'me.hash' => 'Access to your hash value'
+        'me.hash' => 'Access to your hash value',
+        'time' => 'Access the current time'
     ];
 
     /**
@@ -52,6 +53,10 @@ class ScopeRepository implements ScopeRepositoryInterface
         ClientEntityInterface $clientEntity,
         $userIdentifier = null
     ): array {
+        if (!$userIdentifier) {
+            return [$this->getScopeEntityByIdentifier('time')];
+        }
+
         return count($scopes) ? $scopes : [$this->getScopeEntityByIdentifier('me.name')];
     }
 }

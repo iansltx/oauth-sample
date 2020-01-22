@@ -6,6 +6,7 @@ use League\OAuth2\Server\Exception\OAuthServerException;
 use Slim\App;
 use Slim\Http\ServerRequest as Request;
 use Slim\Http\Response;
+use Slim\Interfaces\RouteCollectorProxyInterface;
 
 return function(App $app) {
     // OAUTH
@@ -20,16 +21,30 @@ return function(App $app) {
 
     // LOGGED-IN API
 
-    $app->get('/api/me', function (Request $request, Response $response) {
-        /** @var User $user */
-        $user = $this->get('userRepo')->getById($request->getAttribute('oauth_user_id'));
-        $scopes = $request->getAttribute('oauth_scopes');
+    $app->group('/api', function (RouteCollectorProxyInterface $group) {
+        $group->get('/me', function (Request $request, Response $response) {
+            if (!$request->getAttribute('oauth_user_id')) {
+                return $response->withStatus(StatusCodeInterface::STATUS_FORBIDDEN)
+                    ->withJson(['message' => 'This endpoint requires a user to be logged in.']);
+            }
 
-        return $response->withJson(['id' => $user->getId()] +
-            (in_array('me.name', $scopes) ?
-                ['first_name' => $user->getFirstName(), 'last_name' => $user->getLastName()] : []) +
-            (in_array('me.hash', $scopes) ?
-                ['hash' => $user->getHash()] : []));
+            /** @var User $user */
+            $user = $this->get('userRepo')->getById($request->getAttribute('oauth_user_id'));
+            $scopes = $request->getAttribute('oauth_scopes');
+
+            return $response->withJson(['id' => $user->getId()] +
+                (in_array('me.name', $scopes) ?
+                    ['first_name' => $user->getFirstName(), 'last_name' => $user->getLastName()] : []) +
+                (in_array('me.hash', $scopes) ?
+                    ['hash' => $user->getHash()] : []));
+        });
+
+        $group->get('/time', function (Request $request, Response $response) {
+            return $response->withJson([
+                'time' => gmdate('c'),
+                'client_id' => $request->getAttribute('oauth_client_id')
+            ]);
+        });
     })->add('middleware.isApiAuthenticated');
 
     // LOGGED-IN USER ROUTE
