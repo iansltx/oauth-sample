@@ -10,6 +10,7 @@ use Aura\Sql\ExtendedPdoInterface;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\Grant\PasswordGrant;
+use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\Middleware\ResourceServerMiddleware;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
@@ -34,6 +35,10 @@ return function (Container $container, array $env) {
         $passwordGrant = new PasswordGrant($container['userRepo'], $container['refreshTokenRepo']);
         $passwordGrant->setRefreshTokenTTL(new DateInterval('P1M'));
         $server->enableGrantType($passwordGrant, new DateInterval('PT1H'));
+
+        $refreshGrant = new RefreshTokenGrant($container['refreshTokenRepo']);
+        $refreshGrant->setRefreshTokenTTL(new DateInterval('P1M'));
+        $server->enableGrantType($refreshGrant, new DateInterval('PT1H'));
 
         return $server;
     };

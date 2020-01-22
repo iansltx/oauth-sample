@@ -52,3 +52,36 @@ print_r($header);
 echo "\n== SHOWING JWT PAYLOAD ==\n\n";
 
 print_r($payload);
+
+
+echo "\nRefreshing in 10s";
+
+for ($i = 0; $i < 10; $i++) {
+    echo ".";
+    sleep(1);
+}
+
+$refreshTokenResponse = json_decode(file_get_contents(
+    'http://localhost/oauth/token',
+    false,
+    stream_context_create([
+        'http' => [
+            'ignore_errors' => true,
+            'method' => 'POST',
+            'header' => 'Content-Type: application/x-www-form-urlencoded',
+            'content' => http_build_query([
+                'grant_type' => 'refresh_token',
+                'client_id' => 'first-party',
+                'refresh_token' => $accessTokenResponse->refresh_token,
+            ])
+        ]
+    ])
+));
+
+echo "\n=== REFRESHED TOKEN ===\n\n";
+
+print_r($refreshTokenResponse);
+
+echo "\n=== JWT PAYLOAD IN REFRESHED ACCESS TOKEN ===\n\n";
+
+print_r(splitJWT($refreshTokenResponse->access_token)[1]);
