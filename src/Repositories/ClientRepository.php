@@ -28,6 +28,12 @@ class ClientRepository implements ClientRepositoryInterface
             'redirects' => ['http://localhost/spa-implicit.php'],
             'isConfidential' => false
         ],
+        'third-party-service' => [
+            'name' => 'Third Party Service',
+            'redirects' => ['http://localhost/server-side-auth-code.php'],
+            'isConfidential' => true,
+            'secret' => 'another-super-secret-string'
+        ]
     ];
 
     protected ExtendedPdoInterface $db;

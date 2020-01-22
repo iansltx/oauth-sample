@@ -17,3 +17,9 @@ Approving or denying the authorization request will redirect you back to the SPA
 show either access token information and user information (pulled via an API endpoint) if approved,
 or auth errors if denied. This app stores a random `state` value in local storage before redirecting
 to the authorization server, and checks that value when it receives a redirect back.
+
+To see the Authorization Code grant in action on a server-side scenario (using the client secret),
+navigate to `http://localhost/server-side-auth-code.php`. You'll be redirected to the same app
+authorization/login flow as for the implicit grant, but when you get redirected back the server-side
+will handle redeeming the resulting auth code for an access token. The `state` value is stored
+cross-request in a cookie.
