@@ -9,6 +9,7 @@ services:
       DB_USER: root
       DB_PASSWORD: password
       DB_NAME: app
+      APP_SECRET: "Bi9FYIPmqLJ6JaROOi1aphH/HHvMIg2YWnD3vhiVEG48G+SV"
    # volumes:
    #   - .:/var/app
   db:

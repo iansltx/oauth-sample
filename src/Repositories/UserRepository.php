@@ -4,8 +4,11 @@ namespace App\Repositories;
 
 use App\Models\User;
 use Aura\Sql\ExtendedPdoInterface;
+use League\OAuth2\Server\Entities\ClientEntityInterface;
+use League\OAuth2\Server\Entities\UserEntityInterface;
+use League\OAuth2\Server\Repositories\UserRepositoryInterface;
 
-class UserRepository
+class UserRepository implements UserRepositoryInterface
 {
     protected ExtendedPdoInterface $db;
 
@@ -36,5 +39,14 @@ class UserRepository
     protected function userFromRow(array $row): User
     {
         return new User($row['id'], $row['first_name'], $row['last_name']);
+    }
+
+    public function getUserEntityByUserCredentials(
+        $username,
+        $password,
+        $grantType,
+        ClientEntityInterface $clientEntity
+    ): ?UserEntityInterface {
+        return $this->getByUsernameAndPassword($username, $password);
     }
 }

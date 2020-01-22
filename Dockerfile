@@ -29,4 +29,5 @@ RUN cd /var/app && php /usr/sbin/composer install --prefer-dist -o
 COPY templates /var/app/templates
 COPY public /var/app/public
 COPY bootstrap /var/app/bootstrap
+RUN chown www-data /var/app/bootstrap/*.key && chmod 600 /var/app/bootstrap/*.key
 COPY src /var/app/src

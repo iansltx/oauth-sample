@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
-class User
+use League\OAuth2\Server\Entities\UserEntityInterface;
+
+class User implements UserEntityInterface
 {
     protected string $firstName;
     protected string $lastName;
@@ -26,6 +28,11 @@ class User
     }
 
     public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getIdentifier()
     {
         return $this->id;
     }
