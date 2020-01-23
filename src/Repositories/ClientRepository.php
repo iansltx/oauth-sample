@@ -25,7 +25,7 @@ class ClientRepository implements ClientRepositoryInterface
         ],
         'single-page-app' => [
             'name' => 'Single Page App',
-            'redirects' => ['http://localhost/spa-implicit.php'],
+            'redirects' => ['http://localhost/spa-implicit.php', 'http://localhost/spa-pkce.php'],
             'isConfidential' => false
         ],
         'third-party-service' => [
